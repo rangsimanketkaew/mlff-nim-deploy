@@ -19,7 +19,9 @@ from nvalchemi.models.base import NeighborListFormat
 from ase.neighborlist import neighbor_list
 
 """
-Optimizes MACE-MH-1 model with in-memory dynamic batching (PagedAttention)
+Run MACE-MH-1 model inference using in-memory dynamic batching
+
+Note: Here we use MACE model via nvalchemi package (not mace-torch package like in 1_simple_inference.py)
 """
 
 def compute_neighbors_ase(batch: Batch, cutoff: float) -> None:
@@ -86,9 +88,9 @@ def compute_neighbors_ase(batch: Batch, cutoff: float) -> None:
     )
 
 
-class PagedAttentionEngine:
+class DynamicBatchEngine:
     """
-    PagedAttention-inspired inference engine.
+    Dynamic batching inference engine.
     """
     def __init__(
         self,
@@ -105,7 +107,7 @@ class PagedAttentionEngine:
         self.queue = []
         self.structure_ids = []
         
-        print(f"[INFO] Initializing PagedAttention Engine on {device}...")
+        print(f"[INFO] Initializing Dynamic Batch Engine on {device}...")
         print(f"[INFO] Loading MACE model weights from {model_path}...")
         
         mace_model = torch.load(model_path, weights_only=False, map_location=device)
@@ -146,7 +148,7 @@ class PagedAttentionEngine:
 
     def add_structure(self, atoms: Atoms, structure_id: str = None):
         """
-        Dynamically pages a new atomic structure into the in-memory engine queue
+        Dynamically queues a new atomic structure into the in-memory engine queue
         """
         struct_id = structure_id or f"struct_{len(self.queue)}"
         
@@ -160,11 +162,11 @@ class PagedAttentionEngine:
         
         self.queue.append(data)
         self.structure_ids.append(struct_id)
-        print(f"[INFO] Paged structure '{struct_id}' ({len(atoms)} atoms) into dynamic memory queue.")
+        print(f"[INFO] Queued structure '{struct_id}' ({len(atoms)} atoms) into dynamic memory queue.")
 
     def run_inference(self):
         """
-        Performs dynamic batch inference over all queued pages,
+        Performs dynamic batch inference over all queued structures,
         flushes the queue, and returns the predictions.
         """
         if not self.queue:
@@ -172,7 +174,7 @@ class PagedAttentionEngine:
             return {}
             
         num_structures = len(self.queue)
-        print(f"\n[INFO] Starting batch inference on {num_structures} paged structure(s)...")
+        print(f"\n[INFO] Starting batch inference on {num_structures} queued structure(s)...")
         
         # Collate list of AtomicData into a single Batch representation
         batch = Batch.from_data_list(self.queue, device=self.device)
@@ -230,8 +232,8 @@ if torch.cuda.is_available():
 model_path = "./mace-mh-1.model"
 head_name = "matpes_r2scan"
 
-# Instantiate our PagedAttention Dynamic Batch Engine
-engine = PagedAttentionEngine(
+# Instantiate our Dynamic Batch Engine
+engine = DynamicBatchEngine(
     model_path=model_path,
     device=device,
     head=head_name,
