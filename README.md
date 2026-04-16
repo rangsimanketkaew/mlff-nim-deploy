@@ -1,6 +1,6 @@
-# Deploy Pretrained, Optimized MLFF Model with NVIDIA ALCHEMI NIM Models
+# Deploy Pretrained, Optimized MLFF Model with NVIDIA ALCHEMI NIM Models <!-- omit from toc --> 
 
-## Q & A
+## Q&A
 
 <details>
 <summary>What is NVIDIA NIM?</summary>
@@ -27,38 +27,28 @@ The answer is NO. you cannot deploy a completely custom, from-scratch MLFF (Mach
 Go to https://build.nvidia.com/explore/discover to generate your API key.
 </details>
 
-## Table of Contents
+## Table of Contents <!-- omit from toc --> 
 
-- [Q & A](#q--a)
+- [Q\&A](#qa)
 - [1. Deploying NVIDIA NIM MACE model](#1-deploying-nvidia-nim-mace-model)
-  - [Prerequisites](#prerequisites)
-  - [Step 1: Deploy the NIM Container](#step-1-deploy-the-nim-container)
-  - [Step 2: Verify Status](#step-2-verify-status)
-  - [Step 3: Run Inference (Geometry Relaxation)](#step-3-run-inference-geometry-relaxation)
-  - [Step 4: Python Query Client](#step-4-python-query-client)
 - [2. Deploying model-free NVIDIA NIM MACE models](#2-deploying-model-free-nvidia-nim-mace-models)
-  - [Step 1: Fine-Tuning a MACE Model](#step-1-fine-tuning-a-mace-model)
-  - [Step 2: Deploying the Custom MACE Model](#step-2-deploying-the-custom-mace-model)
-  - [Step 3: Deployment Automation Script](#step-3-deployment-automation-script)
 - [3. Self-Hosting and deploying NVIDIA ALCHEMI NIM models on Local HPC Cluster](#3-self-hosting-and-deploying-nvidia-alchemi-nim-models-on-local-hpc-cluster)
-  - [Directory Structure of Scripts](#directory-structure-of-scripts)
-  - [Step 1: Environment and Security Setup](#step-1-environment-and-security-setup)
-  - [Step 2: Running NIM Interactively](#step-2-running-nim-interactively)
-  - [Step 3: Deploying as a Slurm Batch Job](#step-3-deploying-as-a-slurm-batch-job)
-  - [Step 4: Querying the NIM from a Login Node](#step-4-querying-the-nim-from-a-login-node)
 
 
 ## 1. Deploying NVIDIA NIM MACE model
 
 NVIDIA ALCHEMI NIM provides optimized containers for MLFF models. The primary service for geometry optimization is the **Batched Geometry Relaxation (BGR)** NIM, which supports the foundational **MACE-MP-0** interatomic potential model by default.
 
-#### Prerequisites
+<details>
+<summary>See details here</summary>
+
+#### Prerequisites <!-- omit from toc --> 
 
 - NVIDIA GPU: Compute Capability 8.0+ (Ampere, Ada Lovelace, Hopper, or newer)
 - NVIDIA Container Toolkit: Installed and configured for Docker/Podman
 - NGC API Key: Required to authenticate with the NVIDIA GPU Cloud (NGC) registry and download the MACE model weights
 
-#### Step 1: Deploy the NIM Container
+#### Step 1: Deploy the NIM Container <!-- omit from toc --> 
 
 Run the following Docker command to pull and run the ALCHEMI BGR NIM container:
 
@@ -76,7 +66,7 @@ docker run --gpus all \
 
 *Note: Replace `1.0.0` with the target release version of the BGR container. Setting `ALCHEMI_NIM_MODEL_TYPE="mace"` configures the container to use the MACE-MP-0 model.*
 
-#### Step 2: Verify Status
+#### Step 2: Verify Status <!-- omit from toc --> 
 
 Once launched, the container performs an automatic batch-size check and downloads the MACE weights. Check the readiness status of the NIM using:
 
@@ -86,7 +76,7 @@ curl -i http://localhost:8000/v1/health/ready
 
 When it returns `HTTP/1.1 200 OK`, the microservice is fully ready for inference.
 
-#### Step 3: Run Inference (Geometry Relaxation)
+#### Step 3: Run Inference (Geometry Relaxation) <!-- omit from toc --> 
 
 The container exposes a `POST /v1/infer` REST API endpoint that accepts batch molecular data. Below is the API request/response format:
 
@@ -124,7 +114,7 @@ The container exposes a `POST /v1/infer` REST API endpoint that accepts batch mo
 }
 ```
 
-#### Step 4: Python Query Client
+#### Step 4: Python Query Client <!-- omit from toc --> 
 
 We provide a Python client utility, `query_mace_nim.py`, to programmatically build requests, handle optional integrations with the **Atomic Simulation Environment (ASE)**, and parse/format the relaxed coordinates and forces returned by the container.
 
@@ -139,19 +129,24 @@ To install the dependencies and run the client:
    python3 query_mace_nim.py --url http://localhost:8000
    ```
 
+</details>
+
 ---
 
-## 2. Deploying model-free NVIDIA NIM MACE models
+## 2. Deploying model-free NVIDIA NIM MACE models 
 
 When you want to deploy a fine-tuned or custom MACE model (instead of the standard MACE-MP-0 model), you can run the NIM container in **Model-free** mode. In this mode, the container mounts your custom weights file directly and configures the interatomic potential service to load your model.
 
-#### Step 1: Fine-Tuning a MACE Model
+<details>
+<summary>See details here</summary>
+
+#### Step 1: Fine-Tuning a MACE Model <!-- omit from toc --> 
 
 Before deployment, you can fine-tune MACE foundation weights using your custom atomistic simulation datasets (DFT energy/forces labels). We provide a training script, `train_mace.py`, which:
 1. Generates a synthetic Extended XYZ training and validation dataset (`train.xyz` and `valid.xyz`) representing water molecule deformations.
 2. Configures training parameters and runs the `mace.cli.run_train` module.
 
-##### Prerequisites for Fine-Tuning
+##### Prerequisites for Fine-Tuning 
 
 All training dependencies (including `mace-torch`) can be installed directly via `pyproject.toml` using:
 ```bash
@@ -169,7 +164,7 @@ This generates your fine-tuned model file, e.g., `mace_custom_water.model`.
 
 ---
 
-#### Step 2: Deploying the Custom MACE Model
+#### Step 2: Deploying the Custom MACE Model <!-- omit from toc --> 
 
 To deploy the custom model, we disable the default model downloader, volume-mount the `.model` file to the container's internal cache path, and point the environment variables to the mounted weights.
 
@@ -191,11 +186,16 @@ docker run --gpus all \
   nvcr.io/nim/nvidia/alchemi-bgr:1.0.0
 ```
 
+</details>
+
 ---
 
-#### Step 3: Deployment Automation Script
+#### Step 3: Deployment Automation Script <!-- omit from toc --> 
 
 We provide a helper script, `deploy_custom_mace.py`, to manage model validation, start the Docker container, poll the readiness endpoint `/v1/health/ready` until it's online, and submit a test molecular structure to verify predictions are working on your custom model.
+
+<details>
+<summary>See details here</summary>
 
 ##### To deploy via Python:
 ```bash
@@ -227,7 +227,7 @@ We provide a collection of helper scripts and a Slurm batch template in the [scr
 
 ---
 
-#### Step 1: Environment and Security Setup
+#### Step 1: Environment and Security Setup <!-- omit from toc --> 
 
 Before requesting GPU resources, initialize your workspace on any login node. Because container images and model caches can exceed tens of gigabytes, configure the workspace under a fast local scratch filesystem (e.g., `/scratch/users/$USER` or `/tmp`).
 
@@ -249,7 +249,7 @@ source setup_nim_env.sh
 
 ---
 
-#### Step 2: Running NIM Interactively
+#### Step 2: Running NIM Interactively <!-- omit from toc --> 
 
 For testing, debugging, or prototyping, you can spin up the microservice interactively.
 
@@ -272,7 +272,7 @@ NIM_PORT=8001 CUSTOM_MODEL_PATH="/path/to/mace_custom_water.model" bash launch_n
 
 ---
 
-#### Step 3: Deploying as a Slurm Batch Job
+#### Step 3: Deploying as a Slurm Batch Job <!-- omit from toc --> 
 
 For production pipelines or prolonged runtime sessions, submit the container server as a background Slurm job.
 
@@ -295,7 +295,7 @@ tail -f nim-mace-server-<jobid>.out
 
 ---
 
-#### Step 4: Querying the NIM from a Login Node
+#### Step 4: Querying the NIM from a Login Node <!-- omit from toc --> 
 
 Once the service is healthy, you can query it from any login node or client node within the cluster network.
 
@@ -318,11 +318,13 @@ Once you are done with inference, free cluster resources by canceling the Slurm 
 scancel <jobid>
 ```
 
-## References
+</details>
+
+## References <!-- omit from toc --> 
 
 1. Nvidia Alchemi: https://docs.nvidia.com/nim/alchemi/alchemi-bgr/1.0.0/quickstart-guide.html
 2. Nvidia TensorRT: https://docs.nvidia.com/deeplearning/tensorrt/11.1.0/performance/best-practices.html
 
-## Developer
+## Developer <!-- omit from toc --> 
 
 Rangsiman Ketkaew
