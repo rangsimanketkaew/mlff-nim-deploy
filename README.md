@@ -317,3 +317,12 @@ Once you are done with inference, free cluster resources by canceling the Slurm 
 ```bash
 scancel <jobid>
 ```
+
+## References
+
+1. Nvidia Alchemi: https://docs.nvidia.com/nim/alchemi/alchemi-bgr/1.0.0/quickstart-guide.html
+2. Nvidia TensorRT: https://docs.nvidia.com/deeplearning/tensorrt/11.1.0/performance/best-practices.html
+
+## Developer
+
+Rangsiman Ketkaew
