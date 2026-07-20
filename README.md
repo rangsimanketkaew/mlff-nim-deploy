@@ -1,4 +1,6 @@
-# Deploy Pretrained, Optimized MLFF Model with NVIDIA ALCHEMI NIM Models <!-- omit from toc --> 
+# NVIDIA ALCHEMI NIM Models <!-- omit from toc --> 
+
+Deploy Pretrained, Optimized MLFF Model with NVIDIA ALCHEMI NIM Models 
 
 ## Q&A
 
