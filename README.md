@@ -186,16 +186,11 @@ docker run --gpus all \
   nvcr.io/nim/nvidia/alchemi-bgr:1.0.0
 ```
 
-</details>
-
 ---
 
 #### Step 3: Deployment Automation Script <!-- omit from toc --> 
 
 We provide a helper script, `deploy_custom_mace.py`, to manage model validation, start the Docker container, poll the readiness endpoint `/v1/health/ready` until it's online, and submit a test molecular structure to verify predictions are working on your custom model.
-
-<details>
-<summary>See details here</summary>
 
 ##### To deploy via Python:
 ```bash
@@ -212,18 +207,23 @@ python3 deploy_custom_mace.py \
 - `--container-name`: Custom name for the docker container (default `alchemi-bgr-custom`).
 - `--no-verify`: Skip checking health and running test queries after container start.
 
+</details>
+
 ## 3. Self-Hosting and deploying NVIDIA ALCHEMI NIM models on Local HPC Cluster
 
 NVIDIA NIM containers traditionally rely on Docker, which requires root privileges. On shared High-Performance Computing (HPC) clusters managed by Slurm, root access is restricted, so we use **Singularity** or **Apptainer** to run containers securely as non-root users.
 
-We provide a collection of helper scripts and a Slurm batch template in the [scripts_NIM_slurm_cluster](file:///home/cds/rketkaew/github/mlff-nim-deploy/scripts_NIM_slurm_cluster) folder to automate the deployment process.
+We provide a collection of helper scripts and a Slurm batch template in the [scripts_NIM_slurm_cluster](scripts_NIM_slurm_cluster) folder to automate the deployment process.
+
+<details>
+<summary>See details here</summary>
 
 #### Directory Structure of Scripts
 
-- [`setup_nim_env.sh`](file:///home/cds/rketkaew/github/mlff-nim-deploy/scripts_NIM_slurm_cluster/setup_nim_env.sh): Performs environment setup, directory creation under a fast scratch filesystem, and pulls the ALCHEMI BGR container image.
-- [`launch_nim_interactive.sh`](file:///home/cds/rketkaew/github/mlff-nim-deploy/scripts_NIM_slurm_cluster/launch_nim_interactive.sh): Interactive deployment utility to run NIM on a GPU node inside an active `srun` allocation.
-- [`run_nim_server.slurm`](file:///home/cds/rketkaew/github/mlff-nim-deploy/scripts_NIM_slurm_cluster/run_nim_server.slurm): Slurm batch script to submit a background server job (`sbatch`).
-- [`query_nim_from_login.sh`](file:///home/cds/rketkaew/github/mlff-nim-deploy/scripts_NIM_slurm_cluster/query_nim_from_login.sh): Tests health check and submits validation inference to your running container on a compute node.
+- [`setup_nim_env.sh`](scripts_NIM_slurm_cluster/setup_nim_env.sh): Performs environment setup, directory creation under a fast scratch filesystem, and pulls the ALCHEMI BGR container image.
+- [`launch_nim_interactive.sh`](scripts_NIM_slurm_cluster/launch_nim_interactive.sh): Interactive deployment utility to run NIM on a GPU node inside an active `srun` allocation.
+- [`run_nim_server.slurm`](scripts_NIM_slurm_cluster/run_nim_server.slurm): Slurm batch script to submit a background server job (`sbatch`).
+- [`query_nim_from_login.sh`](scripts_NIM_slurm_cluster/query_nim_from_login.sh): Tests health check and submits validation inference to your running container on a compute node.
 
 ---
 
